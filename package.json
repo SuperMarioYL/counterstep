@@ -25,11 +25,13 @@
     "counterstep": "./dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "docs"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && chmod +x dist/cli.js",
     "dev": "tsx src/cli.ts",
+    "prepack": "npm run build",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test test/*.test.ts"
   },
