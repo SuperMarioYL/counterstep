@@ -1,0 +1,91 @@
+{
+  "version": "0.1.0",
+  "date": "2026-09-26",
+  "environment": {
+    "node": "v22.23.1",
+    "os": "macOS (arm64)",
+    "git": "2.50.1"
+  },
+  "scenario": "A coding agent wipes src/legacy and force-pushes a deletion to the remote; both destructive calls are armed through the PreToolUse hook and reversed one-key from the ledger.",
+  "setup": [
+    "git init -q --bare remote.git",
+    "git init -q -b main app && cd app",
+    "git config user.email demo@example.com && git config user.name demo",
+    "git remote add origin ../remote.git",
+    "mkdir -p src/legacy && echo 'legacy helper v1' > src/legacy/util.js && echo 'scratch notes' > src/legacy/notes.md",
+    "echo '# demo app' > README.md",
+    "git add -A && git commit -qm seed && git push -q -u origin main"
+  ],
+  "commands": [
+    {
+      "command": "counterstep init",
+      "output": [
+        "counterstep: PreToolUse hook wired into .claude/settings.json",
+        "counterstep: ledger + shadow store live in .counterstep/"
+      ]
+    },
+    {
+      "command": "examples/agent-call.sh Bash '{\"command\":\"rm -rf src/legacy\"}'",
+      "note": "the same PreToolUse payload Claude Code pipes in; the hook arms the inverse, then releases the call",
+      "output": [
+        "counterstep: armed 01M3HXB1BFFSSSDHND8CRF9XJB (fs_restore) — \"counterstep ledger\" to review, \"counterstep fire --last\" to undo",
+        "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\"}}"
+      ]
+    },
+    {
+      "command": "counterstep ledger",
+      "output": [
+        "01M3HXB1BFFSSSDHND8CRF9XJB  armed  rm -rf src/legacy",
+        "  inverse: restore src/legacy from the shadow snapshot"
+      ]
+    },
+    {
+      "command": "rm -rf src/legacy && ls src/legacy",
+      "note": "the forward wipe runs; the files are gone",
+      "output": ["ls: src/legacy: No such file or directory"]
+    },
+    {
+      "command": "counterstep fire --last",
+      "output": [
+        "counterstep: fired 01M3HXB1BFFSSSDHND8CRF9XJB — restore src/legacy from the shadow snapshot",
+        "counterstep: the affected scope matches the armed pre-action fingerprint"
+      ]
+    },
+    {
+      "command": "ls src/legacy && cat src/legacy/util.js",
+      "note": "restored byte-identical",
+      "output": ["notes.md", "util.js", "legacy helper v1"]
+    },
+    {
+      "command": "examples/agent-call.sh Bash '{\"command\":\"git push --force origin main\"}'",
+      "note": "force push armed; the inverse is rehearsed against a bare shadow clone, the real remote is only read",
+      "output": [
+        "counterstep: armed 01M3HXBFVQ1FH1AM05KB6ZDAWT (git_push_ref) — \"counterstep ledger\" to review, \"counterstep fire --last\" to undo",
+        "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\"}}"
+      ]
+    },
+    {
+      "command": "git push --force origin main && git ls-remote origin refs/heads/main",
+      "note": "the destructive push lands: d041c4a928828ee24b8c7529caee2fabe0f4a4aa",
+      "output": ["d041c4a928828ee24b8c7529caee2fabe0f4a4aa\trefs/heads/main"]
+    },
+    {
+      "command": "counterstep fire --last",
+      "output": [
+        "counterstep: fired 01M3HXBFVQ1FH1AM05KB6ZDAWT — rewind origin refs/heads/main to 405a8c221f8f",
+        "counterstep: the affected scope matches the armed pre-action fingerprint"
+      ]
+    },
+    {
+      "command": "git ls-remote origin refs/heads/main",
+      "note": "remote ref restored to the armed pre-action target 405a8c221f8f08b637ee68f0b9d8167c7482d480",
+      "output": ["405a8c221f8f08b637ee68f0b9d8167c7482d480\trefs/heads/main"]
+    }
+  ],
+  "limitations": [
+    "v0.1 covers the filesystem and git remote refs only; third-party HTTP writes and git reset --hard stay blocked with the reason stated (docs/invertibility.md)",
+    "shell glob targets (rm -f *.log) are denied because what the shell expands cannot be fingerprinted before execution",
+    "firing an fs_restore is a merge, not a clobber: content that drifted inside an armed scope survives and the artifact is marked stale",
+    "the agent-facing interception is wired for Claude Code; other harnesses are out of scope for v0.1"
+  ]
+}
