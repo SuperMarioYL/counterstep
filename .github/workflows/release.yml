@@ -1,0 +1,51 @@
+name: release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test
+      # prepack builds dist/, so the tarball carries a fresh emit
+      - run: npm pack
+      - run: |
+          mkdir -p dist
+          mv counterstep-*.tgz dist/
+          cd dist
+          shasum -a 256 counterstep-*.tgz > checksums.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+  # Opt-in: publish to npm by setting the NPM_PUBLISH repo variable to "true"
+  # and adding the NPM_TOKEN secret. Unset by default, so the first release
+  # stays green.
+  publish:
+    needs: pack
+    if: vars.NPM_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
