@@ -166,6 +166,21 @@ describe("pass-through and fail-closed behaviour", () => {
     assert.match(decision.reason ?? "", /re-?run|retry/i);
     assert.equal((await listArtifacts(repo)).length, 0);
   });
+
+  test("a glob-targeted rm is denied because the shell expansion cannot be fingerprinted", async (t) => {
+    const repo = await gitRepo(t);
+    await initCounterstep(repo);
+    await writeTree(repo, { "src/legacy/drop.log": "log" });
+
+    const decision = await handleHookEvent(
+      { tool: "Bash", args: { command: "rm -f src/legacy/*.log" } },
+      { root: repo },
+    );
+
+    assert.equal(decision.decision, "deny");
+    assert.match(decision.reason ?? "", /glob/i);
+    assert.equal((await listArtifacts(repo)).length, 0);
+  });
 });
 
 describe("file wipe happy path (m1)", () => {

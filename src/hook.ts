@@ -95,12 +95,23 @@ function positionalArgs(tokens: string[]): string[] {
   return out;
 }
 
+/** Shell glob metacharacters: what the shell expands is unknowable pre-run. */
+function hasGlobMeta(target: string): boolean {
+  return /[*?[]/.test(target);
+}
+
 function classifyRm(tokens: string[], root: string): Classification {
   const targets = positionalArgs(tokens);
   let affected = false;
   for (const target of targets) {
     const guard = fsGuard(target, root);
     if (!guard.ok) return { kind: "blocked", reason: guard.reason };
+    if (hasGlobMeta(target)) {
+      return {
+        kind: "blocked",
+        reason: `${target} contains shell glob metacharacters; counterstep cannot fingerprint what the shell will expand, so the call stays blocked`,
+      };
+    }
     if (existsSync(path.join(root, guard.rel))) affected = true;
   }
   // rm of paths that do not exist destroys nothing
@@ -115,6 +126,12 @@ function classifyMv(tokens: string[], root: string): Classification {
   for (const target of [...sources, dest]) {
     const guard = fsGuard(target, root);
     if (!guard.ok) return { kind: "blocked", reason: guard.reason };
+    if (hasGlobMeta(target)) {
+      return {
+        kind: "blocked",
+        reason: `${target} contains shell glob metacharacters; counterstep cannot fingerprint what the shell will expand, so the call stays blocked`,
+      };
+    }
     // a move destroys its source, and clobbers the destination when it exists
     if (existsSync(path.join(root, guard.rel))) return { kind: "candidate" };
   }
@@ -209,7 +226,9 @@ function classifyCall(event: HookEvent, root: string): Classification {
       return { kind: "safe" };
     }
     case "Write":
-    case "Edit": {
+    case "Edit":
+    case "MultiEdit":
+    case "NotebookEdit": {
       const filePath = typeof event.args.file_path === "string" ? event.args.file_path : "";
       if (!filePath) return { kind: "safe" };
       const abs = path.resolve(root, filePath);
@@ -289,6 +308,9 @@ export async function handleHookEvent(event: HookEvent, opts: HandleHookOptions)
     }
     artifact.rehearsal = { surface: "shadow", after: rehearsal.after, passed: true };
     await appendArtifact(opts.root, artifact);
+    console.error(
+      `counterstep: armed ${artifact.id} (${inverse.kind}) — "counterstep ledger" to review, "counterstep fire --last" to undo`,
+    );
     return { decision: "allow" };
   } catch (err) {
     // arming blew up: never release the call on our own failure
