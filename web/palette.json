@@ -1,0 +1,38 @@
+{
+  "mode": "auto",
+  "id": "56e6d7-6ab1e7-acf6d4-6f9a007a410e",
+  "identity": "https://github.com/supermarioyl/counterstep",
+  "primary": "#56e6d7",
+  "secondary": "#6ab1e7",
+  "highlight": "#acf6d4",
+  "dark": {
+    "bg": "#050c11",
+    "panel": "#0c171e",
+    "code": "#0a171c",
+    "ink": "#eefdf6",
+    "muted": "#95b9c1",
+    "line": "#173c3d",
+    "primary": "#56e6d7",
+    "secondary": "#6ab1e7",
+    "highlight": "#acf6d4",
+    "accent": "#56e6d7",
+    "buttonStart": "#31837b",
+    "buttonEnd": "#4a7ba1",
+    "buttonText": "#ffffff"
+  },
+  "light": {
+    "bg": "#f9fefe",
+    "panel": "#f7fefd",
+    "code": "#f3fdfc",
+    "ink": "#132a2e",
+    "muted": "#557a84",
+    "line": "#cbf7f3",
+    "primary": "#308078",
+    "secondary": "#48799d",
+    "highlight": "#577c6b",
+    "accent": "#308078",
+    "buttonStart": "#31837b",
+    "buttonEnd": "#4a7ba1",
+    "buttonText": "#ffffff"
+  }
+}

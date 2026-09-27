@@ -1,0 +1,449 @@
+{
+  "schema": 3,
+  "name": "Counterstep",
+  "github": "https://github.com/SuperMarioYL/counterstep",
+  "palette": "auto",
+  "lang": {
+    "primary": "en",
+    "toggle": true
+  },
+  "meta": {
+    "visual_style": "neon-particle",
+    "content_baseline": "docs/demo-results.json",
+    "demo_source": "docs/demo-results.json",
+    "content_version": "1",
+    "source_version": "v0.1.0"
+  },
+  "hero": {
+    "eyebrow": {
+      "en": "A rehearsed undo ledger for developers running coding agents with write access",
+      "zh": "为有写权限的编码代理准备的、经过排演验证的撤销账本"
+    },
+    "headline": {
+      "en": "Destructive agent calls\nrun with an armed undo",
+      "zh": "破坏性代理调用\n带着已武装的撤销执行"
+    },
+    "sub": {
+      "en": "Counterstep holds the tool call while it fingerprints the affected state, constructs the inverse and rehearses it on a shadow copy — the call is released only once the undo is armed, and one key fires it when the outcome turns out wrong.",
+      "zh": "Counterstep 会在工具调用执行前扣住它：对受影响状态做指纹、构造逆操作、在影子副本上排演——撤销武装完毕，调用才被放行；结果不对时，一个键就能执行撤销。"
+    },
+    "href": "#quickstart",
+    "command": "npm install -g counterstep",
+    "cta": {
+      "en": "Get started",
+      "zh": "开始使用"
+    },
+    "ctaGithub": {
+      "en": "View on GitHub",
+      "zh": "在 GitHub 查看"
+    }
+  },
+  "advantages": [
+    {
+      "title": {
+        "en": "The undo is proven before the damage is allowed",
+        "zh": "破坏被放行之前，撤销先被证明"
+      },
+      "body": {
+        "en": "A destructive call stays blocked until its inverse exists and passes rehearsal: the affected state is hashed — the filesystem scope's recursive content, or the remote ref's current target read from the remote itself — the inverse is applied to a shadow copy, and it must drive the fingerprint back to the pre-action value. No passing rehearsal, no release.",
+        "zh": "破坏性调用会被一直扣住，直到它的逆操作存在并通过排演：先对受影响状态做哈希——文件系统作用域的递归内容，或直接从远端读取的远程引用当前指向——再让逆操作作用到一份影子副本上，并且必须把指纹还原到操作前的值。排演不通过，就不放行。"
+      },
+      "chips": [
+        "› deny until armed",
+        "› sha256 fingerprint",
+        "› shadow rehearsal"
+      ]
+    },
+    {
+      "title": {
+        "en": "Reaches what snapshots cannot",
+        "zh": "够到快照够不到的地方"
+      },
+      "body": {
+        "en": "Snapshots are passive and local-only: Time Machine and reflog help only if a capture happened to precede the action, and nothing they capture reaches a pushed commit. Counterstep forces the capture — tied to the exact destructive call and fingerprint-checked — and its git inverse, rehearsed against a bare shadow clone, can rewind a force-pushed remote ref to the armed commit.",
+        "zh": "快照是被动的，而且只覆盖本地：时间机器和 reflog 只有在恰好先做了备份时才帮得上忙，而且它们都够不着已经推出去的提交。Counterstep 把捕获变成强制的——绑定到具体的破坏性调用、经过指纹校验；它的 git 逆操作在裸影子克隆上排演，能把被强推的远程引用回退到武装时记录的提交。"
+      },
+      "chips": [
+        "› git push --force interception",
+        "› remote ref read from the remote",
+        "› force-with-lease inverse"
+      ]
+    },
+    {
+      "title": {
+        "en": "One-key recovery that re-verifies itself",
+        "zh": "一键恢复，还会自我复核"
+      },
+      "body": {
+        "en": "The ledger lists every armed inverse with its fingerprint and status. counterstep fire --last executes the undo and re-fingerprints the affected scope: fired only when the state is back exactly at the armed pre-action value, stale when live content drifted — drifted files are never silently clobbered, the restore is a merge you can inspect first. Firing is always a human keystroke.",
+        "zh": "账本列出每一条已武装的逆操作及其指纹与状态。counterstep fire --last 执行撤销并重新对受影响作用域做指纹：状态精确回到武装前的值才标记 fired，内容有漂移则标记 stale——漂移的文件绝不会被静默覆盖，恢复是合并式的，留给你先检查。执行撤销永远是你亲手按下的一击。"
+      },
+      "chips": [
+        "› counterstep fire --last",
+        "› armed · fired · stale · failed",
+        "› no daemon, no database"
+      ]
+    }
+  ],
+  "demo": {
+    "title": {
+      "en": "Recorded demo",
+      "zh": "录制演示"
+    },
+    "note": {
+      "en": "A real session recorded on 2026-09-26 (Node v22.23.1, git 2.50.1, macOS arm64). Setup: a bare remote, then one seeded commit pushing src/legacy with util.js and notes.md to origin/main. The agent wipes src/legacy and force-pushes a deletion; both destructive calls are armed through the PreToolUse hook and reversed one-key from the ledger. Commands and outputs below are verbatim from docs/demo-results.json; the README GIF is rendered from docs/demo.tape.",
+      "zh": "真实会话，录制于 2026-09-26（Node v22.23.1、git 2.50.1、macOS arm64）。前置准备：先建一个裸远端仓库，再用一条种子提交把含 util.js 与 notes.md 的 src/legacy 推到 origin/main。随后代理清空 src/legacy 并强推删除提交；两次破坏性调用都通过 PreToolUse hook 武装逆操作，再从账本一键恢复。以下命令与输出逐字来自 docs/demo-results.json；README 里的 GIF 由 docs/demo.tape 渲染。"
+    },
+    "source": "https://github.com/SuperMarioYL/counterstep/blob/main/docs/demo-results.json",
+    "steps": [
+      {
+        "label": {
+          "en": "Wire the hook",
+          "zh": "装上 hook"
+        },
+        "body": {
+          "en": "counterstep init merges the PreToolUse hook into .claude/settings.json (idempotently) and creates the .counterstep/ state directory — the ledger plus the shadow store.",
+          "zh": "counterstep init 把 PreToolUse hook 幂等地合并进 .claude/settings.json，并创建 .counterstep/ 状态目录——账本加影子仓库。"
+        },
+        "image": "/assets/demo-0-light.svg",
+        "imageDark": "/assets/demo-0-dark.svg",
+        "command": "counterstep init",
+        "output": "counterstep: PreToolUse hook wired into .claude/settings.json\ncounterstep: ledger + shadow store live in .counterstep/"
+      },
+      {
+        "label": {
+          "en": "The wipe is armed",
+          "zh": "清空操作被武装"
+        },
+        "body": {
+          "en": "The exact PreToolUse payload Claude Code pipes in: the hook fingerprints src/legacy, constructs the fs_restore inverse, rehearses it on the shadow copy, then releases the call.",
+          "zh": "这正是 Claude Code 管道送进来的 PreToolUse 载荷：hook 对 src/legacy 做指纹，构造 fs_restore 逆操作，在影子副本上排演，然后放行调用。"
+        },
+        "image": "/assets/demo-1-light.svg",
+        "imageDark": "/assets/demo-1-dark.svg",
+        "command": "examples/agent-call.sh Bash '{\"command\":\"rm -rf src/legacy\"}'",
+        "output": "counterstep: armed 01M3HXB1BFFSSSDHND8CRF9XJB (fs_restore) — \"counterstep ledger\" to review, \"counterstep fire --last\" to undo\n{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\"}}"
+      },
+      {
+        "label": {
+          "en": "The ledger shows it armed",
+          "zh": "账本显示已武装"
+        },
+        "body": {
+          "en": "One row per artifact: the armed undo and its inverse — restore src/legacy from the shadow snapshot.",
+          "zh": "每个工件一行：已武装的撤销及其逆操作——从影子快照恢复 src/legacy。"
+        },
+        "image": "/assets/demo-2-light.svg",
+        "imageDark": "/assets/demo-2-dark.svg",
+        "command": "counterstep ledger",
+        "output": "01M3HXB1BFFSSSDHND8CRF9XJB  armed  rm -rf src/legacy\n  inverse: restore src/legacy from the shadow snapshot"
+      },
+      {
+        "label": {
+          "en": "The wipe runs",
+          "zh": "清空真的执行了"
+        },
+        "body": {
+          "en": "The forward call executes and the directory is gone. This is the moment approval-only tooling has nothing left to offer.",
+          "zh": "原调用执行，目录消失。从这一刻起，只管审批的工具已经无能为力。"
+        },
+        "image": "/assets/demo-3-light.svg",
+        "imageDark": "/assets/demo-3-dark.svg",
+        "command": "rm -rf src/legacy && ls src/legacy",
+        "output": "ls: src/legacy: No such file or directory"
+      },
+      {
+        "label": {
+          "en": "One key fires the undo",
+          "zh": "一键执行撤销"
+        },
+        "body": {
+          "en": "counterstep fire --last restores the shadow snapshot and re-fingerprints the scope: it matches the armed pre-action value.",
+          "zh": "counterstep fire --last 从影子快照恢复，并重新对作用域做指纹：与武装前的值一致。"
+        },
+        "image": "/assets/demo-4-light.svg",
+        "imageDark": "/assets/demo-4-dark.svg",
+        "command": "counterstep fire --last",
+        "output": "counterstep: fired 01M3HXB1BFFSSSDHND8CRF9XJB — restore src/legacy from the shadow snapshot\ncounterstep: the affected scope matches the armed pre-action fingerprint"
+      },
+      {
+        "label": {
+          "en": "Byte-identical",
+          "zh": "按字节一致"
+        },
+        "body": {
+          "en": "notes.md and util.js are back with their original content.",
+          "zh": "notes.md 与 util.js 带着原内容回来了。"
+        },
+        "image": "/assets/demo-5-light.svg",
+        "imageDark": "/assets/demo-5-dark.svg",
+        "command": "ls src/legacy && cat src/legacy/util.js",
+        "output": "notes.md\nutil.js\nlegacy helper v1"
+      },
+      {
+        "label": {
+          "en": "The force push is armed",
+          "zh": "强推被武装"
+        },
+        "body": {
+          "en": "The remote ref's current target is fingerprinted by reading the remote itself; the force-with-lease inverse is rehearsed against a bare shadow clone — the real remote is only ever read.",
+          "zh": "通过直接读取远端，对远程引用的当前指向做指纹；force-with-lease 逆操作在裸影子克隆上排演——真实远端只被读取。"
+        },
+        "image": "/assets/demo-6-light.svg",
+        "imageDark": "/assets/demo-6-dark.svg",
+        "command": "examples/agent-call.sh Bash '{\"command\":\"git push --force origin main\"}'",
+        "output": "counterstep: armed 01M3HXBFVQ1FH1AM05KB6ZDAWT (git_push_ref) — \"counterstep ledger\" to review, \"counterstep fire --last\" to undo\n{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\"}}"
+      },
+      {
+        "label": {
+          "en": "The deletion lands",
+          "zh": "删除提交落地"
+        },
+        "body": {
+          "en": "The force push executes and refs/heads/main moves to the deletion commit d041c4a9 — an external side effect no local snapshot or reflog can reach.",
+          "zh": "强推执行，refs/heads/main 指向删除提交 d041c4a9——这是本地快照和 reflog 都够不着的外部副作用。"
+        },
+        "image": "/assets/demo-7-light.svg",
+        "imageDark": "/assets/demo-7-dark.svg",
+        "command": "git push --force origin main && git ls-remote origin refs/heads/main",
+        "output": "d041c4a928828ee24b8c7529caee2fabe0f4a4aa\trefs/heads/main"
+      },
+      {
+        "label": {
+          "en": "Fire the rewind",
+          "zh": "一键回退远端"
+        },
+        "body": {
+          "en": "The recorded inverse pushes the armed pre-action sha back under the lease, then re-verifies the fingerprint.",
+          "zh": "记录下来的逆操作把武装前的 sha 在租约保护下推回远端，然后重新验证指纹。"
+        },
+        "image": "/assets/demo-8-light.svg",
+        "imageDark": "/assets/demo-8-dark.svg",
+        "command": "counterstep fire --last",
+        "output": "counterstep: fired 01M3HXBFVQ1FH1AM05KB6ZDAWT — rewind origin refs/heads/main to 405a8c221f8f\ncounterstep: the affected scope matches the armed pre-action fingerprint"
+      },
+      {
+        "label": {
+          "en": "Remote restored",
+          "zh": "远端恢复"
+        },
+        "body": {
+          "en": "refs/heads/main is back at 405a8c221f8f08b637ee68f0b9d8167c7482d480, the target recorded at arming time.",
+          "zh": "refs/heads/main 回到 405a8c221f8f08b637ee68f0b9d8167c7482d480，即武装时记录的指向。"
+        },
+        "image": "/assets/demo-9-light.svg",
+        "imageDark": "/assets/demo-9-dark.svg",
+        "command": "git ls-remote origin refs/heads/main",
+        "output": "405a8c221f8f08b637ee68f0b9d8167c7482d480\trefs/heads/main"
+      }
+    ]
+  },
+  "quickstart": {
+    "title": {
+      "en": "Get started",
+      "zh": "快速开始"
+    },
+    "body": {
+      "en": "Node 22+ required; macOS and Linux only in v0.1. Two commands wire the hook, then work with your agent as usual.",
+      "zh": "需要 Node 22+；v0.1 仅支持 macOS 与 Linux。两条命令装好 hook，之后照常使用你的代理。"
+    },
+    "steps": [
+      {
+        "title": {
+          "en": "Install",
+          "zh": "安装"
+        },
+        "code": "npm install -g counterstep"
+      },
+      {
+        "title": {
+          "en": "Wire the hook",
+          "zh": "接上 hook"
+        },
+        "code": "cd path/to/your/repo\ncounterstep init"
+      },
+      {
+        "title": {
+          "en": "Recover when needed",
+          "zh": "需要时恢复"
+        },
+        "code": "counterstep ledger        # review armed inverses and their fingerprints\ncounterstep fire --last   # execute the most recent undo, re-verified"
+      },
+      {
+        "title": {
+          "en": "Try it without an agent",
+          "zh": "不启动代理也能试"
+        },
+        "code": "./examples/agent-call.sh Bash \"rm -rf src/legacy\"   # the payload the hook sees\ncounterstep ledger\nrm -rf src/legacy\ncounterstep fire --last"
+      }
+    ]
+  },
+  "limitations": [
+    {
+      "en": "v0.1 covers the filesystem and git remote refs only. Ops with no constructible inverse — third-party HTTP writes, git reset --hard — stay blocked with the reason stated; docs/invertibility.md classifies the full destructive call surface.",
+      "zh": "v0.1 只覆盖文件系统与 git 远程引用。没有可构造逆操作的操作——第三方 HTTP 写入、git reset --hard——会被拒绝并说明理由；docs/invertibility.md 完整分类了破坏性调用面。"
+    },
+    {
+      "en": "Shell glob targets (rm -f *.log) are denied: what the shell will expand is unknowable before execution, so no fingerprint oracle can cover them.",
+      "zh": "shell 通配符目标（rm -f *.log）会被拒绝：shell 会展开成什么在执行前不可知，任何指纹裁判都覆盖不了。"
+    },
+    {
+      "en": "Firing an fs_restore is a merge, not a clobber: content that drifted inside an armed scope survives and the artifact is marked stale for inspection.",
+      "zh": "fs_restore 的执行是合并而非覆盖：武装作用域内发生漂移的内容会保留下来，工件标记为 stale，留待检查。"
+    },
+    {
+      "en": "The agent-facing interception is wired for Claude Code. Adapters for Cursor, Codex CLI and Windsurf are future plans, not part of v0.1.",
+      "zh": "面向代理的拦截目前只接了 Claude Code。Cursor、Codex CLI 与 Windsurf 的适配是后续计划，不在 v0.1 之内。"
+    },
+    {
+      "en": "macOS and Linux only; Windows is out of scope for v0.1.",
+      "zh": "仅支持 macOS 与 Linux；Windows 不在 v0.1 范围内。"
+    },
+    {
+      "en": "Firing is always a human keystroke: no automatic firing, no auto-rollback policies, no scheduled sweeps.",
+      "zh": "执行撤销永远是人的按键：没有自动执行，没有自动回滚策略，也没有定时清扫。"
+    }
+  ],
+  "scene": {
+    "kind": "neon-graph",
+    "caption": {
+      "en": "Illustrative scene: a destructive call is held while its inverse is fingerprint-checked and rehearsed on a shadow copy, then armed and released; the ledger fires the undo with one key.",
+      "zh": "示意场景：破坏性调用被扣住，其逆操作经过指纹校验并在影子副本上排演，武装后才放行；撤销由账本一键执行。"
+    },
+    "fallback": "/assets/scene-dark.svg",
+    "fallbackLight": "/assets/scene-light.svg"
+  },
+  "story": {
+    "intro": {
+      "title": {
+        "en": "Approval is not recovery",
+        "zh": "审批不等于恢复"
+      },
+      "body": {
+        "en": "Developers now run coding agents with write access, often with auto-approval. Harnesses gate the decision — an approve/deny dialog, a sandbox — and that is where their guarantees end. Once an approved destructive call executes, prevention has nothing left to offer: an approval prompt has no slot for \"here is the armed inverse and its verified fingerprint\", so the outcome of an agent pushing a commit that deletes every file on main is whatever git and luck happen to allow. The usual answers are passive and local-only: Time Machine and reflog help only if a capture happened to precede the action, and nothing they capture reaches a pushed commit.",
+        "zh": "如今开发者让编码代理持有写权限，而且越来越多地开着自动审批。各类 harness 管住的是决策——审批对话框、沙箱——它们的保障也到此为止。一旦被批准的破坏性调用执行了，「预防」就再没有什么可提供的：审批对话框里没有位置放「这是已武装的逆操作和它的验证指纹」，于是代理推上一个删光 main 的提交之后，结果只能交给 git 和运气。常见的补救手段都是被动的、只管本地：时间机器和 reflog 只有在恰好先做了备份时才帮得上忙，而且它们都够不着已经推出去的提交。"
+      }
+    },
+    "sections": [
+      {
+        "title": {
+          "en": "The handshake: fingerprint, rehearse, arm",
+          "zh": "握手：指纹、排演、武装"
+        },
+        "body": {
+          "en": "Counterstep hooks the tool-call path of your agent. When a call lands in the destructive class — deleting files, overwriting an existing file, force-pushing — the hook fingerprints the affected state, constructs the inverse (a shadow-snapshot restore for the filesystem, a force-with-lease ref rewind for git), and applies it to a shadow copy. The call is denied until the rehearsal drives the fingerprint back to the pre-action value; only then is the inverse armed in the ledger and the call released. Typically seconds.",
+          "zh": "Counterstep 挂在代理的工具调用链路上。当调用落入破坏性类别——删除文件、覆盖已有文件、强推分支——hook 会对受影响状态做指纹，构造逆操作（文件系统是影子快照恢复，git 是 force-with-lease 回退远程引用），并把它作用到影子副本上。排演必须把指纹还原到操作前的值，否则调用被拒绝；只有排演通过，逆操作才武装进账本，调用才放行。通常只需几秒。"
+        },
+        "image": {
+          "light": "/assets/process-light.svg",
+          "dark": "/assets/process-dark.svg",
+          "mobile": {
+            "light": "/assets/process-mobile-light.svg",
+            "dark": "/assets/process-mobile-dark.svg"
+          },
+          "alt": {
+            "en": "Fingerprint, rehearse, arm: a destructive call is held until its inverse passes shadow rehearsal",
+            "zh": "指纹、排演、武装：破坏性调用被扣住，直到逆操作通过影子排演"
+          }
+        }
+      },
+      {
+        "title": {
+          "en": "One CLI, state is a directory",
+          "zh": "一个 CLI，状态就是一个目录"
+        },
+        "body": {
+          "en": "One npm-installed CLI, zero daemons, no database. The hook handler is the only process running at interception time; inverse constructors, fingerprint oracles and shadow rehearsal live in the same binary, and the ledger is an append-only JSONL file under .counterstep/. Firing re-verifies fingerprints and marks artifacts stale on drift — all from the same directory of state you can inspect and back up.",
+          "zh": "一个 npm 安装的 CLI，零守护进程，没有数据库。拦截发生时只有 hook 处理进程在跑；逆操作构造、指纹裁判和影子排演都在同一个二进制里，账本是 .counterstep/ 下追加写的 JSONL 文件。执行撤销时会重新验证指纹，有漂移就标记 stale——所有状态都在同一个目录里，可检查、可备份。"
+        },
+        "image": {
+          "light": "/assets/architecture-light.svg",
+          "dark": "/assets/architecture-dark.svg",
+          "mobile": {
+            "light": "/assets/architecture-mobile-light.svg",
+            "dark": "/assets/architecture-mobile-dark.svg"
+          },
+          "alt": {
+            "en": "Hook, inverse constructors, shadow rehearsal and the JSONL ledger behind one CLI",
+            "zh": "一个 CLI 背后的 hook、逆操作构造、影子排演与 JSONL 账本"
+          }
+        }
+      },
+      {
+        "title": {
+          "en": "A stated boundary, not a hidden one",
+          "zh": "边界是明说的，不是藏着的"
+        },
+        "body": {
+          "en": "Every op the hook sees is classified against the implemented mechanism in docs/invertibility.md: fifteen destructive ops arm verified inverses — rm, mv, overwrites, edits and forced pushes; twelve are intercepted and refused with the reason in the denial — glob targets, out-of-workspace paths, git reset --hard, third-party HTTP writes; and the not-yet-intercepted list (git clean, shell redirections) is enumerated as the v0.2 backlog rather than implied coverage.",
+          "zh": "hook 看到的每个操作都在 docs/invertibility.md 里对照已实现的机制做了分类：十五个破坏性操作会武装经验证的逆操作——rm、mv、覆盖、编辑和强推；十二个被拦截但带着明确理由拒绝——通配符目标、工作区之外的路径、git reset --hard、第三方 HTTP 写入；尚未拦截的清单（git clean、shell 重定向）作为 v0.2 待办逐条列出，而不是含糊其辞。"
+        },
+        "image": {
+          "light": "/assets/invertibility-light.svg",
+          "dark": "/assets/invertibility-dark.svg",
+          "mobile": {
+            "light": "/assets/invertibility-mobile-light.svg",
+            "dark": "/assets/invertibility-mobile-dark.svg"
+          },
+          "alt": {
+            "en": "Invertibility classification: armed, blocked with reasons, and not yet intercepted",
+            "zh": "可逆性分类：已武装、带理由拒绝、尚未拦截"
+          }
+        }
+      }
+    ],
+    "details": [
+      {
+        "title": {
+          "en": "Ledger statuses",
+          "zh": "账本状态"
+        },
+        "body": {
+          "en": "armed — the inverse is constructed, the rehearsal passed, the forward call is released. fired — the undo executed and the post-fire fingerprint matches the armed value. stale — the undo executed but live state drifted since arming; inspect before re-arming. failed — the inverse could not execute (for example a third-party commit landed under the lease) and the remote was left untouched.",
+          "zh": "armed——逆操作已构造，排演通过，原调用已放行。fired——撤销已执行，执行后指纹与武装值一致。stale——撤销已执行，但武装之后实时状态发生了漂移，重新武装前先检查。failed——逆操作无法执行（例如租约之下落入了第三方的提交），远端保持原样未被触碰。"
+        }
+      },
+      {
+        "title": {
+          "en": "What init configures",
+          "zh": "init 配置了什么"
+        },
+        "body": {
+          "en": "Two things: the PreToolUse hook entry, merged idempotently into .claude/settings.json so existing settings survive, and the .counterstep/ directory holding ledger.jsonl plus the shadow store for rehearsal payloads. Counterstep keeps no other state anywhere — add .counterstep/ to your .gitignore.",
+          "zh": "两件事：PreToolUse hook 条目，幂等地合并进 .claude/settings.json，不会破坏已有配置；以及 .counterstep/ 目录，里面是 ledger.jsonl 和存放排演载荷的影子仓库。Counterstep 不在任何其他地方保存状态——请把 .counterstep/ 加进 .gitignore。"
+        },
+        "code": "echo '.counterstep/' >> .gitignore"
+      },
+      {
+        "title": {
+          "en": "Scope and what comes next",
+          "zh": "边界与后续"
+        },
+        "body": {
+          "en": "v0.1 intentionally covers the filesystem and git remote refs only. Expanding toward the not-yet-intercepted class is scoped one oracle at a time, gated by docs/invertibility.md; publishing the artifact format for harness and MCP tool authors, and adapters for other harnesses, are planned — none of it ships in v0.1.",
+          "zh": "v0.1 刻意只覆盖文件系统与 git 远程引用。向尚未拦截的类别扩展会一次补一个裁判，以 docs/invertibility.md 为准；把工件格式发布给 harness 与 MCP 工具作者、适配更多 harness，都在计划之中——但 v0.1 都还没有。"
+        }
+      }
+    ]
+  },
+  "cta": {
+    "headline": {
+      "en": "Give your agent an undo worth trusting",
+      "zh": "给你的代理一个值得信任的撤销"
+    },
+    "sub": {
+      "en": "npm install -g counterstep, run init in the repo, and the next wipe or force push lands in a ledger with its proven undo attached.",
+      "zh": "npm install -g counterstep，在仓库里跑一次 init，下一次清空或强推就会带着被证明过的撤销进账本。"
+    },
+    "button": {
+      "en": "Get started",
+      "zh": "开始使用"
+    }
+  },
+  "footer": {
+    "tag": {
+      "en": "MIT licensed · free and open source · no paid tier, no paywalled features",
+      "zh": "MIT 许可 · 免费开源 · 没有付费版，没有付费墙后的功能"
+    }
+  }
+}
