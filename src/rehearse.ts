@@ -159,10 +159,22 @@ async function rehearseGitPushRef(
   });
   if (expired()) return { surface: "shadow", after: "", passed: false, expired: true };
 
-  // replay the inverse: force-with-lease semantics, restoring the prior sha
-  await execa("git", ["push", "--force", "--quiet", clonePath, `${to_sha}:${ref}`], {
-    cwd: root,
-  });
+  // replay the inverse under real force-with-lease semantics: the replay is
+  // leased to the shadow ref's current value — the shadow stand-in for the
+  // remote-tracking ref the real forward push updates — so the rehearsal
+  // exercises the same compare-and-swap the fire path depends on
+  const { stdout: leaseSha } = await execa("git", ["rev-parse", ref], { cwd: clonePath });
+  await execa(
+    "git",
+    [
+      "push",
+      `--force-with-lease=${ref}:${leaseSha.trim()}`,
+      "--quiet",
+      clonePath,
+      `${to_sha}:${ref}`,
+    ],
+    { cwd: root },
+  );
 
   const { stdout: shadowSha } = await execa("git", ["rev-parse", ref], { cwd: clonePath });
   if (shadowSha.trim() === to_sha) {

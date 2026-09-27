@@ -120,12 +120,20 @@ export async function fireArtifact(root: string, selector: FireSelector): Promis
     if (artifact.inverse_op.kind === "fs_restore") {
       await restoreFromShadow(root, artifact);
     } else {
-      // the post-fire fingerprint below is the lease: the rewind must land on
-      // the armed sha or the artifact is marked stale
+      // lease the rewind to the remote-tracking ref the forward push updated:
+      // a third-party commit landing between forward push and fire rejects the
+      // push here (status failed, remote untouched) instead of being clobbered;
+      // the post-fire fingerprint below stays as the belt-and-suspenders check
       const inverse = artifact.inverse_op;
       await execa(
         "git",
-        ["push", "--force", "--quiet", inverse.remote, `${inverse.to_sha}:${inverse.ref}`],
+        [
+          "push",
+          `--force-with-lease=${inverse.ref}`,
+          "--quiet",
+          inverse.remote,
+          `${inverse.to_sha}:${inverse.ref}`,
+        ],
         { cwd: root },
       );
     }
