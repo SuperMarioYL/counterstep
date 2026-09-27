@@ -1,0 +1,15 @@
+node_modules/
+dist/
+
+# runtime state created while using the tool
+.counterstep/
+.claude/
+CLAUDE.md
+
+# build scratch
+PUBLISH_BLOCKED.md
+BUILD_SETUP_NEXT_STEPS.md
+.spawn.*
+.builder_*
+.build_metadata*
+.stage_*

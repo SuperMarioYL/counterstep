@@ -1,0 +1,46 @@
+{
+  "name": "counterstep",
+  "version": "0.1.0",
+  "description": "A rehearsed undo ledger for developers running coding agents with write access",
+  "type": "module",
+  "license": "MIT",
+  "author": {
+    "name": "SuperMarioYL"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SuperMarioYL/counterstep.git"
+  },
+  "keywords": [
+    "claude-code",
+    "coding-agent",
+    "undo",
+    "compensation",
+    "developer-tools"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "counterstep": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "commander": "^12",
+    "execa": "^9",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsx": "^4",
+    "typescript": "^5.5"
+  }
+}
